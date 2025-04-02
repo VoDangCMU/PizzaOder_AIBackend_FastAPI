@@ -1,0 +1,5 @@
+pizza_env/
+__pycache__/
+qdrant_data/
+.env
+saved_model/
