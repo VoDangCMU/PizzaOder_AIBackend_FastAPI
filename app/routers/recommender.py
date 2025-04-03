@@ -1,9 +1,9 @@
 # app/routers/recommender.py
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from app.train_models.load_model import load_model  # Hàm load mô hình
-from app.postgresql.postgresql_config import SessionLocal  # Kết nối PostgreSQL
-from app.models.models import PizzaSale  # Model PizzaSale
+from app.train_models.load_model import load_model  
+from app.postgresql.postgresql_config import SessionLocal  
+from app.models.models import PizzaSale
 from sklearn.preprocessing import LabelEncoder
 import torch
 import pandas as pd
@@ -25,6 +25,7 @@ def get_pizza_data():
     try:
         pizzas = db.query(PizzaSale).all()
         pizza_data = pd.DataFrame([{
+            'order_id': pizza.order_id,
             'pizza_name_id': pizza.pizza_name_id,
             'pizza_name': pizza.pizza_name,
             'pizza_category': pizza.pizza_category,
@@ -42,29 +43,18 @@ def get_pizza_data():
     finally:
         db.close()
 
-# API cho gợi ý pizza
 @router.post("/recommend")
 async def recommend_pizza(request: PizzaRecommendationRequest):
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model, node_features, category_tensor, ingredient_tensor, edge_index, edge_weight = load_model(device)
+
     pizza_data = get_pizza_data()
 
-    if not pizza_data:
+    if pizza_data.empty:
         raise HTTPException(status_code=404, detail="No pizza data found")
 
     pizza_ids = pizza_data['pizza_name_id'].unique().tolist()
     pizza_index_map = {pid: idx for idx, pid in enumerate(pizza_ids)}
-    
-    cat_encoder = LabelEncoder()
-    ingr_encoder = LabelEncoder()
-    pizza_data['pizza_category_encoded'] = cat_encoder.fit_transform(pizza_data['pizza_category'])
-    pizza_data['pizza_ingredients_encoded'] = ingr_encoder.fit_transform(pizza_data['pizza_ingredients'])
-    
-    pizza_data['quantity'] = (pizza_data['quantity'] - pizza_data['quantity'].min()) / (pizza_data['quantity'].max() - pizza_data['quantity'].min())
-    pizza_data['total_price'] = (pizza_data['total_price'] - pizza_data['total_price'].min()) / (pizza_data['total_price'].max() - pizza_data['total_price'].min())
-
-    node_features, category_tensor, ingredient_tensor = prepare_node_features(pizza_data)
-    edge_index, edge_weight = prepare_edges(pizza_data)
-
-    pizza_order_times = pizza_data['order_time'].tolist()
 
     suggested_pizza_ids = suggest_pizza_based_on_gnn_with_time(
         pizza_id=request.pizza_id,
@@ -78,10 +68,10 @@ async def recommend_pizza(request: PizzaRecommendationRequest):
         edge_weight=edge_weight,
         pizza_index_map=pizza_index_map,
         pizza_ids=pizza_ids,
-        pizza_order_times=pizza_order_times
+        pizza_order_times=pizza_data['order_time'].tolist()
     )
 
-    if not suggested_pizza_ids: 
+    if not suggested_pizza_ids:
         raise HTTPException(status_code=404, detail="No similar pizzas found")
 
     return {"suggested_pizza_ids": suggested_pizza_ids}

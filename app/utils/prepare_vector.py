@@ -46,13 +46,19 @@ def suggest_pizza_based_on_gnn_with_time(pizza_id, order_time, time_window, mode
 
 def prepare_node_features(pizza_data):
     features, categories, ingredients = [], [], []
+    
+    pizza_data['pizza_size'] = pizza_data['pizza_name_id'].apply(lambda x: x.split('_')[-1])  # Lấy phần sau dấu "_"
+    pizza_size_dummies = pd.get_dummies(pizza_data['pizza_size'], prefix='size')
+    
     for _, row in pizza_data.iterrows():
-        size = torch.tensor(row[['S','M','L','XL','XXL']].astype(float).values, dtype=torch.float32)
+        size = torch.tensor(pizza_size_dummies.loc[_, :].values, dtype=torch.float32)
         q = torch.tensor([row['quantity']], dtype=torch.float32)
         p = torch.tensor([row['total_price']], dtype=torch.float32)
         t = torch.tensor(time_to_vec(row['order_time']), dtype=torch.float32)
+        
         feat = torch.cat([size, q, p, t])
         features.append(feat)
+        
         categories.append(row['pizza_category_encoded'])
         ingredients.append(row['pizza_ingredients_encoded'])
     
@@ -62,7 +68,9 @@ def prepare_node_features(pizza_data):
 
     return node_features, category_tensor, ingredient_tensor
 
+
 def prepare_edges(pizza_data):
+    print(pizza_data.columns)
     pizza_ids = pizza_data['pizza_name_id'].unique().tolist()
     pizza_index_map = {pid: idx for idx, pid in enumerate(pizza_ids)}
 
