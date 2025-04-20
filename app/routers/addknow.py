@@ -34,7 +34,7 @@ documents = [
               metadata={"tag": "Pizza Categories", "categories": "Classic, Veggie, Supreme"}),
     Document(page_content="Các kích thước pizza tại Võ Đang Pizza gồm có M (Medium), L (Large).",
               metadata={"tag": "Pizza Sizes", "sizes": "M, L"}),
-]
+] 
 
 def create_collection():
     try:

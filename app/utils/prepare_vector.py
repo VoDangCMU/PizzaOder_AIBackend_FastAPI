@@ -9,7 +9,7 @@ def time_to_minutes(t):
     t = pd.to_datetime(t, format='%H:%M:%S')
     return t.hour * 60 + t.minute
 
-def suggest_pizza_based_on_gnn_with_time(pizza_id, order_time, time_window, model, node_features, category_tensor, ingredient_tensor, edge_index, edge_weight, pizza_index_map, pizza_ids, pizza_order_times, top_n=5):
+def suggest_pizza_based_on_gnn_with_time(pizza_id, order_time, time_window, model, node_features, category_tensor, ingredient_tensor, edge_index, edge_weight, pizza_index_map, pizza_ids, pizza_order_times, top_n=6):
     """
     Gợi ý các pizza tương tự dựa trên mô hình GNN đã huấn luyện và thời gian order.
     Trả về danh sách top N pizza_name_id có độ tương đồng cao với pizza_id được chọn và trong phạm vi thời gian gần với order_time.
