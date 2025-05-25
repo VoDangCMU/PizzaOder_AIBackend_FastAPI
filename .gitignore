@@ -4,3 +4,4 @@ qdrant_data/
 .env
 saved_model/
 ngrok.exe/
+bash.exe.stackdump/
