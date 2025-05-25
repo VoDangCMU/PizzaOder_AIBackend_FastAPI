@@ -1,3 +1,5 @@
+import sys
+sys.path.append('E:/PizzaOder_FastAPI/yolov9')
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 from app.routers.home import router as home_router
@@ -11,6 +13,8 @@ from app.routers.post_router import router as post
 from app.routers.search_router import router as search
 from app.routers.sentiment_router import router as sentiment
 from app.routers.chatbot_inpost import router as chatbott
+from app.routers.object_tracking import router as objecttr
+from app.routers.sentiment_router import router as sentiment
 app = FastAPI()
 
 app.add_middleware(
@@ -31,3 +35,5 @@ app.include_router(post)
 app.include_router(search)
 app.include_router(sentiment)
 app.include_router(chatbott)
+app.include_router(objecttr)
+app.include_router(sentiment)

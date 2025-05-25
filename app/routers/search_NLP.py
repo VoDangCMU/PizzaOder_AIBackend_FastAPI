@@ -34,7 +34,7 @@ def get_pizza_data(size=None, money=None, category=None, ingredients=None, targe
         lower_bound = target_price * 0.9
         upper_bound = target_price * 1.1
         query = query.filter(PizzaSale.unit_price.between(lower_bound, upper_bound))
-
+    print(query)
     pizzas = query.all()
     return pizzas
 
